@@ -3,36 +3,52 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
+let distanceTravelled = 0
 let speed = 0;
+let timePassed = 0;
 let speedDecrease = 0.01;
-let lastTime = performance.now();
-const fixedTimeStep = 50;
+let lastTime = 0; 
+const fixedTimeStep = 250; 
 
 function gameLoop(currentTime) {
-    const deltaTime = currentTime - lastTime;
+    if (lastTime === 0) lastTime = currentTime; 
 
-    while (deltaTime >= fixedTimeStep) {
-        updateSpeed();
-        lastTime += fixedTimeStep;
-        deltaTime -= fixedTimeStep;
-    }
+    let deltaTime = currentTime - lastTime;
+
+    updateSpeed(deltaTime);
+    updateDistanceTravelled(deltaTime)
+    timePassed += deltaTime/1000;
+
     updateUI();
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(gameLoop); 
+    
+    
+    document.getElementById('currentDeltaTime').textContent = deltaTime.toFixed(2);
+    lastTime = currentTime;
 }
 
-function updateSpeed() {
-    speed -= speedDecrease;
+function updateSpeed(deltaTime) {
+    let currentDecrease = speedDecrease*(deltaTime/1000)
+    if (speed - currentDecrease> 0){
+        speed -= currentDecrease;
+    }
+    else{
+        speed = 0;
+    }
+}
+function updateDistanceTravelled(deltaTime){
+    distanceTravelled += (speed/3.6) * (deltaTime/1000)
 }
 
-gameLoop();
+requestAnimationFrame(gameLoop); 
 
 function incrementSpeed() {
     speed += 1;
     updateUI();
-    // Пример отправки данных в бота (можно использовать позже)
-    tg.sendData(JSON.stringify({ score: speed }));
 }
 
-function updateUI(){
-    document.getElementById('score').textContent = speed;
+function updateUI() {
+    document.getElementById('speed').textContent = speed.toFixed(2);
+    document.getElementById('distanceTravelled').textContent = distanceTravelled.toFixed(2);
+    document.getElementById('timePassed').textContent = timePassed.toFixed(2);
 }
